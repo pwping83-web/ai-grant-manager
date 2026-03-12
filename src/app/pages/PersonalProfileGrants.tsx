@@ -48,6 +48,7 @@ function getMatchBadges(profileId: string | undefined, grant: { title: string; o
   }
   if (profileId === 'park') {
     if (/공동주택|관리지원|관리\s*지원/.test(text)) badges.push('공동주택 맞춤');
+    if (/노후|수리|리모델링|정비|주민\s*동의/.test(text)) badges.push('노후주택 수리 맞춤');
   }
   return badges;
 }
