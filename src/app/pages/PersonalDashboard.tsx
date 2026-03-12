@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { motion } from 'motion/react';
-import { User, Store, MapPin, ChevronRight, Sparkles } from 'lucide-react';
+import { User, Store, ChevronRight, Sparkles } from 'lucide-react';
 import { personalProfiles } from '../data/personalProfiles';
 
 export function PersonalDashboard() {
@@ -21,6 +21,19 @@ export function PersonalDashboard() {
         <p className="text-muted-foreground mb-6" style={{ fontSize: '0.875rem', lineHeight: 1.6 }}>
           사장님을 클릭하면 새로 업데이트된 지원정보와 확인 안 한 지원정보를 볼 수 있습니다.
         </p>
+
+        <Link to="/personal/2026">
+          <motion.div
+            className="mb-6 flex items-center justify-between gap-3 p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-blue-50 border border-primary/20 hover:border-primary/40 transition-all cursor-pointer"
+            whileHover={{ scale: 1.01, y: -2 }}
+            whileTap={{ scale: 0.99 }}
+          >
+            <span className="font-semibold text-primary" style={{ fontSize: '0.9375rem' }}>
+              2026 지원사업 바로가기
+            </span>
+            <ChevronRight className="w-5 h-5 text-primary shrink-0" />
+          </motion.div>
+        </Link>
 
         <div className="space-y-4">
           {personalProfiles.map((profile, i) => (
@@ -49,17 +62,9 @@ export function PersonalDashboard() {
                           <div className="flex items-center gap-1.5 text-muted-foreground" style={{ fontSize: '0.75rem' }}>
                             <Store className="w-3.5 h-3.5" />
                             {profile.businessName}
-                            <span className="text-muted-foreground/70">· {profile.birthYear % 100}년생 {profile.gender}{!profile.isYouth && ' · 청년 아님'}</span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 text-muted-foreground mt-2" style={{ fontSize: '0.75rem' }}>
-                        <MapPin className="w-3.5 h-3.5 shrink-0" />
-                        {profile.region} {profile.subRegion}
-                      </div>
-                      <p className="text-muted-foreground mt-3 line-clamp-2" style={{ fontSize: '0.8125rem', lineHeight: 1.5 }}>
-                        {profile.description}
-                      </p>
                     </div>
                     <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
                   </div>

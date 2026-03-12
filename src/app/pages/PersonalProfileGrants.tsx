@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useSearchParams } from 'react-router';
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Sparkles, Bell, Eye, RefreshCw } from 'lucide-react';
@@ -47,6 +47,8 @@ function getMatchBadges(profileId: string | undefined, grant: { title: string; o
 
 export function PersonalProfileGrants() {
   const { profileId } = useParams<{ profileId: string }>();
+  const [searchParams] = useSearchParams();
+  const yearFilter = searchParams.get('year');
   const profile = profileId ? getProfileById(profileId) : null;
   const { grants, loading, refetch } = useGrants();
   const [viewedIds, setViewedIds] = useState<string[]>([]);
@@ -98,12 +100,20 @@ export function PersonalProfileGrants() {
     );
   }
 
-  /** 청년(39세 이하) 아님인 경우, 청년 전용 공고 제외 */
+  /** 프로필에 맞지 않는 공고 제외: 청년 전용(청년 아님 시), 여성기업 전용(남성 시), 연도 필터(?year=2026) */
   const filteredGrants = grants.filter((g) => {
     if (g.status === 'closed') return false;
+    if (yearFilter) {
+      const yearNum = parseInt(yearFilter, 10);
+      const hasYear = g.deadline.startsWith(`${yearNum}-`) || g.title.includes(`${yearNum}`);
+      if (!hasYear) return false;
+    }
+    const t = `${g.title} ${g.organization} ${g.description} ${(g.eligibility || []).join(' ')}`;
     if (profile && !profile.isYouth) {
-      const t = `${g.title} ${g.organization} ${g.description} ${(g.eligibility || []).join(' ')}`;
       if (/청년/.test(t) || /만\s*39세|39세\s*이하/.test(t)) return false;
+    }
+    if (profile && profile.gender === '남성') {
+      if (/여성기업|여성\s*대표|여성\s*창업|여성\s*대상|여성\s*전용|여성만/.test(t)) return false;
     }
     return true;
   });
@@ -131,7 +141,7 @@ export function PersonalProfileGrants() {
             {profile.name} 사장님 지원정보
           </h1>
           <p className="text-muted-foreground mt-1" style={{ fontSize: '0.8125rem' }}>
-            {profile.businessName} · {profile.region} {profile.subRegion} · {profile.birthYear % 100}년생 {profile.gender}{!profile.isYouth && ' · 청년 아님'}
+            {profile.businessName}
           </p>
         </motion.div>
 
@@ -188,15 +198,7 @@ export function PersonalProfileGrants() {
           </div>
         ) : (
           <div className="space-y-3">
-            {grants
-              .filter((g) => g.status !== 'closed')
-              .filter((g) => {
-                if (profile && !profile.isYouth) {
-                  const t = `${g.title} ${g.organization} ${g.description} ${(g.eligibility || []).join(' ')}`;
-                  if (/청년/.test(t) || /만\s*39세|39세\s*이하/.test(t)) return false;
-                }
-                return true;
-              })
+            {[...filteredGrants]
               .sort((a, b) => a.dDay - b.dDay)
               .map((grant, i) => {
                 const isNew = !viewedIds.includes(grant.id);
@@ -269,7 +271,7 @@ export function PersonalProfileGrants() {
           </div>
         )}
 
-        {!loading && grants.length === 0 && (
+        {!loading && filteredGrants.length === 0 && grants.length === 0 && (
           <div className="text-center py-12 text-muted-foreground" style={{ fontSize: '0.875rem' }}>
             아직 지원정보가 없습니다. 크롤러가 데이터를 수집하면 표시됩니다.
           </div>

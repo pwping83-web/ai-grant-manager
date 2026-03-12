@@ -21,6 +21,7 @@ import { AdminMembers } from './pages/admin/AdminMembers';
 import { AdminTemplates } from './pages/admin/AdminTemplates';
 import { PersonalDashboard } from './pages/PersonalDashboard';
 import { PersonalProfileGrants } from './pages/PersonalProfileGrants';
+import { Personal2026Shortcut } from './pages/Personal2026Shortcut';
 
 export const router = createBrowserRouter([
   {
@@ -64,6 +65,14 @@ export const router = createBrowserRouter([
     Component: PersonalDashboard,
   },
   {
+    path: '/personal/2026',
+    Component: Personal2026Shortcut,
+  },
+  {
+    path: '/personal/2026',
+    Component: Personal2026Shortcut,
+  },
+  {
     path: '/personal/:profileId',
     Component: PersonalProfileGrants,
   },
@@ -72,10 +81,13 @@ export const router = createBrowserRouter([
     Component: GrantDetail,
   },
   {
+    path: '/ai-writer',
+    Component: AIWriter,
+  },
+  {
     Component: UserLayout,
     children: [
       { path: '/dashboard', Component: Dashboard },
-      { path: '/ai-writer', Component: AIWriter },
       { path: '/mypage', Component: MyPage },
     ],
   },
