@@ -49,6 +49,7 @@ export function PersonalDashboard() {
                           <div className="flex items-center gap-1.5 text-muted-foreground" style={{ fontSize: '0.75rem' }}>
                             <Store className="w-3.5 h-3.5" />
                             {profile.businessName}
+                            <span className="text-muted-foreground/70">· {profile.birthYear % 100}년생 {profile.gender}{!profile.isYouth && ' · 청년 아님'}</span>
                           </div>
                         </div>
                       </div>

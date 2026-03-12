@@ -53,33 +53,49 @@ function rowToGrant(row: Record<string, unknown>): Grant {
   };
 }
 
+async function fetchGrants(): Promise<Grant[]> {
+  const { data, error } = await supabase.from('grants').select('*').order('deadline', { ascending: true });
+  if (error) throw error;
+  if (data && data.length > 0) {
+    const fromSupabase = data.map(rowToGrant);
+    const mockIds = new Set(mockGrants.map((g) => g.id));
+    const newFromSupabase = fromSupabase.filter((g) => !mockIds.has(g.id));
+    return [...mockGrants, ...newFromSupabase];
+  }
+  return mockGrants;
+}
+
 /** Supabase + mock 데이터 병합 (크롤 데이터 + 상세 mock) */
 export function useGrants() {
   const [grants, setGrants] = useState<Grant[]>(mockGrants);
   const [loading, setLoading] = useState(true);
 
+  const refetch = async () => {
+    setLoading(true);
+    try {
+      const merged = await fetchGrants();
+      setGrants(merged);
+    } catch {
+      setGrants(mockGrants);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
-    (async () => {
-      try {
-        const { data, error } = await supabase.from('grants').select('*').order('deadline', { ascending: true });
-        if (error) throw error;
-        if (mounted && data && data.length > 0) {
-          const fromSupabase = data.map(rowToGrant);
-          const mockIds = new Set(mockGrants.map((g) => g.id));
-          const supabaseIds = new Set(fromSupabase.map((g) => g.id));
-          const newFromSupabase = fromSupabase.filter((g) => !mockIds.has(g.id));
-          const merged = [...mockGrants, ...newFromSupabase];
-          setGrants(merged);
-        }
-      } catch {
-        setGrants(mockGrants);
-      } finally {
+    fetchGrants()
+      .then((merged) => {
+        if (mounted) setGrants(merged);
+      })
+      .catch(() => {
+        if (mounted) setGrants(mockGrants);
+      })
+      .finally(() => {
         if (mounted) setLoading(false);
-      }
-    })();
+      });
     return () => { mounted = false; };
   }, []);
 
-  return { grants, loading };
+  return { grants, loading, refetch };
 }

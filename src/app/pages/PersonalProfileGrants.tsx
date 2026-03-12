@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router';
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Sparkles, Bell, Eye } from 'lucide-react';
+import { ArrowLeft, Sparkles, Bell, Eye, RefreshCw } from 'lucide-react';
 import { getProfileById } from '../data/personalProfiles';
 import { useGrants } from '@/lib/useGrants';
 import type { Grant } from '../data/mockData';
@@ -35,11 +35,48 @@ function formatKoreanAmount(num: number): string {
   return num.toLocaleString();
 }
 
+/** 김기쁨 프로필: 안양시·전기지원 맞춤 배지 */
+function getMatchBadges(profileId: string | undefined, grant: { title: string; organization: string; description: string }): string[] {
+  if (!profileId || profileId !== 'kim') return [];
+  const text = `${grant.title} ${grant.organization} ${grant.description}`;
+  const badges: string[] = [];
+  if (/안양/.test(text)) badges.push('안양시 맞춤');
+  if (/전기/.test(text)) badges.push('전기지원 맞춤');
+  return badges;
+}
+
 export function PersonalProfileGrants() {
   const { profileId } = useParams<{ profileId: string }>();
   const profile = profileId ? getProfileById(profileId) : null;
-  const { grants, loading } = useGrants();
+  const { grants, loading, refetch } = useGrants();
   const [viewedIds, setViewedIds] = useState<string[]>([]);
+  const [crawlLoading, setCrawlLoading] = useState(false);
+  const [crawlMessage, setCrawlMessage] = useState<string | null>(null);
+
+  const handleCrawl = async () => {
+    setCrawlLoading(true);
+    setCrawlMessage(null);
+    try {
+      const base = import.meta.env.DEV ? 'https://ai-grant-manager.vercel.app' : '';
+      const res = await fetch(`${base}/api/crawl`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || '크롤링 트리거 실패');
+      setCrawlMessage(data.message || '크롤링이 시작되었습니다. 1~2분 후 새로고침해 주세요.');
+      setTimeout(() => refetch(), 90000); // 90초 후 자동 새로고침
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '실패';
+      setCrawlMessage(
+        msg === 'Failed to fetch'
+          ? 'API 연결 실패. Vercel에서 GITHUB_TOKEN을 설정한 뒤 재배포해 주세요. 또는 GitHub → Actions → Daily Crawler Bot → Run workflow 로 수동 실행하세요.'
+          : msg
+      );
+    } finally {
+      setCrawlLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (profileId) setViewedIds(getViewedIds(profileId));
@@ -61,7 +98,16 @@ export function PersonalProfileGrants() {
     );
   }
 
-  const unviewedGrants = grants.filter((g) => !viewedIds.includes(g.id));
+  /** 청년(39세 이하) 아님인 경우, 청년 전용 공고 제외 */
+  const filteredGrants = grants.filter((g) => {
+    if (g.status === 'closed') return false;
+    if (profile && !profile.isYouth) {
+      const t = `${g.title} ${g.organization} ${g.description} ${(g.eligibility || []).join(' ')}`;
+      if (/청년/.test(t) || /만\s*39세|39세\s*이하/.test(t)) return false;
+    }
+    return true;
+  });
+  const unviewedGrants = filteredGrants.filter((g) => !viewedIds.includes(g.id));
   const unviewedCount = unviewedGrants.length;
 
   return (
@@ -85,7 +131,7 @@ export function PersonalProfileGrants() {
             {profile.name} 사장님 지원정보
           </h1>
           <p className="text-muted-foreground mt-1" style={{ fontSize: '0.8125rem' }}>
-            {profile.businessName} · {profile.region} {profile.subRegion}
+            {profile.businessName} · {profile.region} {profile.subRegion} · {profile.birthYear % 100}년생 {profile.gender}{!profile.isYouth && ' · 청년 아님'}
           </p>
         </motion.div>
 
@@ -102,6 +148,40 @@ export function PersonalProfileGrants() {
           </motion.div>
         )}
 
+        <motion.div
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <button
+            type="button"
+            onClick={handleCrawl}
+            disabled={crawlLoading}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            style={{ fontSize: '0.875rem' }}
+          >
+            <RefreshCw className={`w-4 h-4 ${crawlLoading ? 'animate-spin' : ''}`} />
+            {crawlLoading ? '크롤링 시작 중...' : '실시간 크롤링 (최신 지원정보 가져오기)'}
+          </button>
+          {crawlMessage && (
+            <div className={`mt-2 text-center text-sm ${crawlMessage.includes('실패') || crawlMessage.includes('오류') ? 'text-red-600' : 'text-green-600'}`}>
+              {crawlMessage}
+              {crawlMessage.includes('API 연결 실패') && (
+                <p className="mt-2">
+                  <a
+                    href="https://github.com/pwping83-web/ai-grant-manager/actions/workflows/daily-crawler.yml"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:no-underline"
+                  >
+                    GitHub에서 수동 실행 →
+                  </a>
+                </p>
+              )}
+            </div>
+          )}
+        </motion.div>
+
         {loading ? (
           <div className="text-center py-12 text-muted-foreground" style={{ fontSize: '0.875rem' }}>
             지원정보 불러오는 중...
@@ -110,9 +190,19 @@ export function PersonalProfileGrants() {
           <div className="space-y-3">
             {grants
               .filter((g) => g.status !== 'closed')
+              .filter((g) => {
+                if (profile && !profile.isYouth) {
+                  const t = `${g.title} ${g.organization} ${g.description} ${(g.eligibility || []).join(' ')}`;
+                  if (/청년/.test(t) || /만\s*39세|39세\s*이하/.test(t)) return false;
+                }
+                return true;
+              })
               .sort((a, b) => a.dDay - b.dDay)
               .map((grant, i) => {
                 const isNew = !viewedIds.includes(grant.id);
+                const text = `${grant.title} ${grant.organization} ${grant.description}`;
+                const isAnyang = profile?.id === 'kim' && (text.includes('안양') || text.includes('안양시'));
+                const isElectric = profile?.id === 'kim' && (text.includes('전기') || text.includes('전기요금'));
                 return (
                   <motion.div
                     key={grant.id}
@@ -137,7 +227,7 @@ export function PersonalProfileGrants() {
                             </span>
                           </div>
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="truncate font-medium" style={{ fontSize: '0.875rem' }}>
                                 {grant.title}
                               </span>
@@ -147,6 +237,17 @@ export function PersonalProfileGrants() {
                                   NEW
                                 </span>
                               )}
+                              {profile?.id === 'kim' && (() => {
+                                const t = `${grant.title} ${grant.organization} ${grant.description}`;
+                                const badges: string[] = [];
+                                if (/안양/.test(t)) badges.push('안양시 맞춤');
+                                if (/전기/.test(t)) badges.push('전기지원 맞춤');
+                                return badges.map((b) => (
+                                  <span key={b} className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs shrink-0">
+                                    {b}
+                                  </span>
+                                ));
+                              })()}
                             </div>
                             <div className="text-muted-foreground" style={{ fontSize: '0.75rem' }}>
                               {grant.maxAmount} · {grant.organization}
