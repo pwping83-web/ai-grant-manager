@@ -298,15 +298,29 @@ export function GrantDetail() {
             AI로 지원서 작성하기
           </Link>
         </motion.div>
-        <motion.button
-          className="flex items-center justify-center gap-2 bg-white border border-border text-foreground py-4 px-6 rounded-2xl hover:bg-secondary transition-colors"
-          style={{ fontWeight: 500 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <ExternalLink className="w-5 h-5" />
-          원문 보기
-        </motion.button>
+        {grant.source_url ? (
+          <motion.a
+            href={grant.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 bg-white border border-border text-foreground py-4 px-6 rounded-2xl hover:bg-secondary transition-colors"
+            style={{ fontWeight: 500 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <ExternalLink className="w-5 h-5" />
+            원문 보기
+          </motion.a>
+        ) : (
+          <motion.span
+            className="flex items-center justify-center gap-2 bg-muted text-muted-foreground py-4 px-6 rounded-2xl cursor-not-allowed"
+            style={{ fontWeight: 500 }}
+            title="원문 링크가 등록되지 않았습니다"
+          >
+            <ExternalLink className="w-5 h-5" />
+            원문 보기
+          </motion.span>
+        )}
       </div>
 
       {/* Mobile Floating Bottom CTA */}
@@ -320,10 +334,24 @@ export function GrantDetail() {
             <Sparkles className="w-4 h-4" />
             AI 지원서 작성
           </Link>
-          <button className="flex items-center justify-center bg-white border border-border text-foreground p-3.5 rounded-xl"
-            style={{ fontWeight: 500 }}>
-            <ExternalLink className="w-4 h-4" />
-          </button>
+          {grant.source_url ? (
+            <a
+              href={grant.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center bg-white border border-border text-foreground p-3.5 rounded-xl hover:bg-secondary transition-colors"
+              style={{ fontWeight: 500 }}
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          ) : (
+            <span
+              className="flex items-center justify-center bg-muted text-muted-foreground p-3.5 rounded-xl cursor-not-allowed"
+              title="원문 링크가 등록되지 않았습니다"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </span>
+          )}
         </div>
       </div>
     </div>

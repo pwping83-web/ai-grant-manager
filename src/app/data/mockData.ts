@@ -16,6 +16,8 @@ export interface Grant {
   requiredDocs: string[];
   timeline: { date: string; label: string; done: boolean }[];
   scraped?: boolean;
+  /** 원문 공고 URL (원문 보기 버튼 연결) */
+  source_url?: string;
 }
 
 export type PlanType = 'free' | 'standard' | 'premium';
@@ -81,6 +83,7 @@ export const mockGrants: Grant[] = [
     matchRate: 95,
     matchReasons: ['경기 지역 조건 충족', '창업 1년차 조건 충족', 'IT/소프트웨어 업종 적합'],
     status: 'open',
+    source_url: 'https://www.k-startup.go.kr/common/announcement/announcementList.do',
     description: '혁신적인 기술 아이디어를 보유한 초기 창업자(3년 이내)를 대상으로 사업화 자금, 멘토링, 교육 등을 종합 지원하는 프로그램입니다.',
     eligibility: ['창업 3년 이내 기업', '대표자 만 39세 이하', '기술 기반 창업 아이템 보유', '타 창업패키지 미수혜'],
     benefits: ['사업화 자금 최대 1억원', '전담 멘토 매칭', '공유오피스 입주 지원', '후속 투자 연계'],
@@ -187,6 +190,7 @@ export const mockGrants: Grant[] = [
     title: '안양시 소상공인 창업·경영지원사업',
     organization: '안양시',
     category: '창업지원',
+    source_url: 'https://www.anyang.go.kr/main/contents/view.do?menuKey=234',
     deadline: '2026-05-15',
     dDay: 69,
     maxAmount: '2천만원',
@@ -225,6 +229,7 @@ export const mockGrants: Grant[] = [
       { date: '2026-06-30', label: '1차 분기 마감', done: false },
       { date: '2026-12-31', label: '연간 지원 마감', done: false },
     ],
+    source_url: 'https://cyber.kepco.co.kr/ckepco/front/jsp/CY/E/E/CYEEHP00101.jsp',
   },
   {
     id: '9',

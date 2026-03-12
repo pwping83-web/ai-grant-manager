@@ -50,6 +50,7 @@ function rowToGrant(row: Record<string, unknown>): Grant {
     requiredDocs: [],
     timeline: [],
     scraped: true,
+    source_url: (row.source_url as string) || undefined,
   };
 }
 
