@@ -27,6 +27,56 @@ def get_supabase_client() -> Client:
     return create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
+def scrape_naver_search() -> List[dict]:
+    """
+    네이버 검색 API로 정부지원금 관련 뉴스/블로그 수집 (보조용)
+    .env에 NAVER_CLIENT_ID, NAVER_CLIENT_SECRET 설정 시 활성화
+    """
+    client_id = os.getenv("NAVER_CLIENT_ID")
+    client_secret = os.getenv("NAVER_CLIENT_SECRET")
+    if not client_id or not client_secret:
+        return []
+
+    grants = []
+    queries = ["정부지원금 2026", "소상공인 지원사업 2026", "창업지원금 2026"]
+
+    try:
+        for query in queries:
+            url = f"https://openapi.naver.com/v1/search/news.json?query={requests.utils.quote(query)}&display=5&sort=date"
+            res = requests.get(
+                url,
+                headers={
+                    "X-Naver-Client-Id": client_id,
+                    "X-Naver-Client-Secret": client_secret,
+                },
+                timeout=10,
+            )
+            if res.status_code != 200:
+                continue
+            data = res.json()
+            for item in data.get("items", []):
+                title = item.get("title", "").replace("<b>", "").replace("</b>", "")
+                link = item.get("link", "")
+                desc = item.get("description", "").replace("<b>", "").replace("</b>", "")
+                if title and len(title) > 5 and link:
+                    grants.append({
+                        "title": title[:200],
+                        "organization": "네이버 검색",
+                        "category": "기타",
+                        "max_amount": None,
+                        "deadline": None,
+                        "status": "open",
+                        "description": (desc or title)[:500],
+                        "source_url": link,
+                    })
+        if grants:
+            print(f"  [네이버 검색] {len(grants)}건 수집")
+    except Exception as e:
+        print(f"  [네이버 검색 실패] {e}")
+
+    return grants
+
+
 def scrape_grants() -> List[dict]:
     """
     타겟 URL에서 공고 데이터 수집 (가상 크롤링)
@@ -154,6 +204,8 @@ def save_to_supabase(client: Client, grants: List[dict]) -> tuple:
             "status": g.get("status", "open"),
             "description": g.get("description"),
         }
+        if g.get("source_url"):
+            row["source_url"] = g.get("source_url")
 
         try:
             client.table("grants").insert(row).execute()
@@ -174,7 +226,14 @@ def main():
     client = get_supabase_client()
     print("[1/2] 공고 데이터 수집 중...")
     grants = scrape_grants()
-    print(f"      수집된 공고: {len(grants)}건")
+    naver = scrape_naver_search()
+    seen = {g.get("title", "").lower().strip() for g in grants}
+    for g in naver:
+        t = (g.get("title") or "").lower().strip()
+        if t and t not in seen:
+            seen.add(t)
+            grants.append(g)
+    print(f"      수집된 공고: {len(grants)}건 (K-Startup + 네이버 검색)")
 
     print("[2/2] Supabase grants 테이블에 저장 중...")
     inserted, skipped = save_to_supabase(client, grants)

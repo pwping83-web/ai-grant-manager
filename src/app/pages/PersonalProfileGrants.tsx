@@ -35,15 +35,20 @@ function formatKoreanAmount(num: number): string {
   return num.toLocaleString();
 }
 
-/** 김기쁨 프로필: 안양시·전기지원·배달비·마케팅 맞춤 배지 */
+/** 프로필별 맞춤 배지: 김기쁨(안양·전기·배달·마케팅), 박원평(공동주택) */
 function getMatchBadges(profileId: string | undefined, grant: { title: string; organization: string; description: string }): string[] {
-  if (!profileId || profileId !== 'kim') return [];
+  if (!profileId) return [];
   const text = `${grant.title} ${grant.organization} ${grant.description}`;
   const badges: string[] = [];
-  if (/안양/.test(text)) badges.push('안양시 맞춤');
-  if (/전기/.test(text)) badges.push('전기지원 맞춤');
-  if (/배달/.test(text)) badges.push('배달비 맞춤');
-  if (/마케팅/.test(text)) badges.push('마케팅 맞춤');
+  if (profileId === 'kim') {
+    if (/안양/.test(text)) badges.push('안양시 맞춤');
+    if (/전기/.test(text)) badges.push('전기지원 맞춤');
+    if (/배달/.test(text)) badges.push('배달비 맞춤');
+    if (/마케팅/.test(text)) badges.push('마케팅 맞춤');
+  }
+  if (profileId === 'park') {
+    if (/공동주택|관리지원|관리\s*지원/.test(text)) badges.push('공동주택 맞춤');
+  }
   return badges;
 }
 
@@ -241,19 +246,11 @@ export function PersonalProfileGrants() {
                                   NEW
                                 </span>
                               )}
-                              {profile?.id === 'kim' && (() => {
-                                const t = `${grant.title} ${grant.organization} ${grant.description}`;
-                                const badges: string[] = [];
-                                if (/안양/.test(t)) badges.push('안양시 맞춤');
-                                if (/전기/.test(t)) badges.push('전기지원 맞춤');
-                                if (/배달/.test(t)) badges.push('배달비 맞춤');
-                                if (/마케팅/.test(t)) badges.push('마케팅 맞춤');
-                                return badges.map((b) => (
-                                  <span key={b} className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs shrink-0">
-                                    {b}
-                                  </span>
-                                ));
-                              })()}
+                              {getMatchBadges(profileId, grant).map((b) => (
+                                <span key={b} className="bg-green-100 text-green-700 px-1.5 py-0.5 rounded text-xs shrink-0">
+                                  {b}
+                                </span>
+                              ))}
                             </div>
                             <div className="text-muted-foreground" style={{ fontSize: '0.75rem' }}>
                               {grant.maxAmount} · {grant.organization}
