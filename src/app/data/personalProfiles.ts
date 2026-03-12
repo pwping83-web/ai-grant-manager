@@ -12,6 +12,7 @@ export interface PersonalProfile {
   businessName: string;
   region: string;
   subRegion: string;
+  employees: number; // 상시근로자 수 (0 = 1인 사업, 2 = 3인 미만 등)
   description: string;
   keywords: string[]; // 매칭용 키워드 (지원금 필터링)
 }
