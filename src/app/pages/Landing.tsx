@@ -109,6 +109,13 @@ export function Landing() {
           </motion.div>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
+              to="/personal"
+              className="text-muted-foreground hover:text-foreground transition-colors px-2 sm:px-3 py-1.5"
+              style={{ fontSize: '0.8125rem' }}
+            >
+              개인용 지원정보
+            </Link>
+            <Link
               to="/pricing"
               className="text-muted-foreground hover:text-foreground transition-colors px-2 sm:px-3 py-1.5"
               style={{ fontSize: '0.8125rem' }}

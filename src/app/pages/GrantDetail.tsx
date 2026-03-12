@@ -1,13 +1,14 @@
 import { useParams, Link, useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import { ArrowLeft, Clock, CheckCircle, Circle, FileText, Sparkles, ExternalLink, Bookmark, BookmarkCheck, Share2, AlertCircle, Calendar } from 'lucide-react';
-import { mockGrants } from '../data/mockData';
+import { useGrants } from '@/lib/useGrants';
 import { useState } from 'react';
 
 export function GrantDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const grant = mockGrants.find((g) => g.id === id);
+  const { grants } = useGrants();
+  const grant = id ? grants.find((g) => g.id === id) : null;
   const [isScrapped, setIsScrapped] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'docs'>('overview');
 

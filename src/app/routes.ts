@@ -19,6 +19,8 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminGrants } from './pages/admin/AdminGrants';
 import { AdminMembers } from './pages/admin/AdminMembers';
 import { AdminTemplates } from './pages/admin/AdminTemplates';
+import { PersonalDashboard } from './pages/PersonalDashboard';
+import { PersonalProfileGrants } from './pages/PersonalProfileGrants';
 
 export const router = createBrowserRouter([
   {
@@ -58,10 +60,21 @@ export const router = createBrowserRouter([
     Component: Pricing,
   },
   {
+    path: '/personal',
+    Component: PersonalDashboard,
+  },
+  {
+    path: '/personal/:profileId',
+    Component: PersonalProfileGrants,
+  },
+  {
+    path: '/grant/:id',
+    Component: GrantDetail,
+  },
+  {
     Component: UserLayout,
     children: [
       { path: '/dashboard', Component: Dashboard },
-      { path: '/grant/:id', Component: GrantDetail },
       { path: '/ai-writer', Component: AIWriter },
       { path: '/mypage', Component: MyPage },
     ],
