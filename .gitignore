@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.*
+.vite/
+crawler/venv/
+__pycache__/
+*.pyc
+.DS_Store
+node_modules
