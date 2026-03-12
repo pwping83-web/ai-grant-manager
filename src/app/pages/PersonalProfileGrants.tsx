@@ -35,7 +35,7 @@ function formatKoreanAmount(num: number): string {
   return num.toLocaleString();
 }
 
-/** 프로필별 맞춤 배지: 김기쁨(안양·전기·배달·마케팅), 박원평(공동주택) */
+/** 프로필별 맞춤 배지: 김기쁨(안양·전기·배달·마케팅), 박원평(인천·공동주택) */
 function getMatchBadges(profileId: string | undefined, grant: { title: string; organization: string; description: string }): string[] {
   if (!profileId) return [];
   const text = `${grant.title} ${grant.organization} ${grant.description}`;
@@ -47,6 +47,7 @@ function getMatchBadges(profileId: string | undefined, grant: { title: string; o
     if (/마케팅/.test(text)) badges.push('마케팅 맞춤');
   }
   if (profileId === 'park') {
+    if (/인천|인천시|인천중구|중구/.test(text)) badges.push('인천 맞춤');
     if (/공동주택|관리지원|관리\s*지원/.test(text)) badges.push('공동주택 맞춤');
     if (/노후|수리|리모델링|정비|주민\s*동의/.test(text)) badges.push('노후주택 수리 맞춤');
   }
@@ -108,9 +109,14 @@ export function PersonalProfileGrants() {
     );
   }
 
-  /** 프로필에 맞지 않는 공고 제외: 청년 전용(청년 아님 시), 여성기업 전용(남성 시), 연도 필터(?year=2026) */
+  /** 프로필에 맞지 않는 공고 제외: 프로필 전용(targetProfileIds), 제외(excludeProfileIds), 청년/여성기업, 연도 */
   const filteredGrants = grants.filter((g) => {
     if (g.status === 'closed') return false;
+    if (profile) {
+      if ((g as { excludeProfileIds?: string[] }).excludeProfileIds?.includes(profile.id)) return false;
+      const targetIds = (g as { targetProfileIds?: string[] }).targetProfileIds;
+      if (targetIds && targetIds.length > 0 && !targetIds.includes(profile.id)) return false;
+    }
     if (yearFilter) {
       const yearNum = parseInt(yearFilter, 10);
       const hasYear = g.deadline.startsWith(`${yearNum}-`) || g.title.includes(`${yearNum}`);
@@ -122,6 +128,13 @@ export function PersonalProfileGrants() {
     }
     if (profile && profile.gender === '남성') {
       if (/여성기업|여성\s*대표|여성\s*창업|여성\s*대상|여성\s*전용|여성만/.test(t)) return false;
+    }
+    if (profile && profile.id === 'kim') {
+      // 김기쁨(안양 카페): 공동주택·노후주택·주택관리 등 전부 제외
+      if (/공동주택|노후주택|주택|한국주택관리사|한국주택협회/.test(t)) return false;
+    }
+    if (profile && profile.id === 'park') {
+      if (/안양/.test(t)) return false; // 박원평: 안양 관련 전부 제외
     }
     return true;
   });

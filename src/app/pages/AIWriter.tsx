@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSearchParams, Link } from 'react-router';
+import { useSearchParams, Link, useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, ChevronDown, ChevronRight, Lightbulb, FileText, ArrowLeft, RefreshCw, Copy, Check, BookOpen, Wand2, AlertCircle, Crown } from 'lucide-react';
 import Groq from 'groq-sdk';
@@ -23,6 +23,7 @@ const SYSTEM_PROMPT = `당신은 정부지원사업(초창패, 소상공인 지�
 
 export function AIWriter() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const grantId = searchParams.get('grantId') || '1';
   const grant = mockGrants.find((g) => g.id === grantId) || mockGrants[0];
 
@@ -102,9 +103,9 @@ export function AIWriter() {
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <motion.div whileHover={{ scale: 1.1, x: -2 }} whileTap={{ scale: 0.9 }}>
-            <Link to="/dashboard" className="p-1.5 sm:p-2 rounded-lg hover:bg-secondary transition-colors shrink-0">
+            <button type="button" onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/personal')} className="p-1.5 sm:p-2 rounded-lg hover:bg-secondary transition-colors shrink-0">
               <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-            </Link>
+            </button>
           </motion.div>
           <div className="min-w-0">
             <h1 style={{ fontSize: 'clamp(0.9375rem, 2vw, 1.25rem)', fontWeight: 700 }}>AI 지원서 작성실</h1>

@@ -18,6 +18,10 @@ export interface Grant {
   scraped?: boolean;
   /** 원문 공고 URL (원문 보기 버튼 연결) */
   source_url?: string;
+  /** 이 공고를 보여줄 프로필 ID (미설정 시 전원) - 김기쁨: kim, 박원평: park */
+  targetProfileIds?: string[];
+  /** 이 공고를 제외할 프로필 ID */
+  excludeProfileIds?: string[];
 }
 
 export type PlanType = 'free' | 'standard' | 'premium';
@@ -194,6 +198,7 @@ export const mockGrants: Grant[] = [
     title: '안양시 소상공인 창업·경영지원사업',
     organization: '안양시',
     category: '창업지원',
+    targetProfileIds: ['kim'],
     source_url: 'https://www.anyang.go.kr/main/contents/view.do?menuKey=234',
     deadline: '2026-05-15',
     dDay: 69,
@@ -240,6 +245,7 @@ export const mockGrants: Grant[] = [
     title: '안양시 상권활성화 콘텐츠 제작 지원',
     organization: '안양시 상권진흥과',
     category: '마케팅지원',
+    targetProfileIds: ['kim'],
     source_url: 'https://www.anyang.go.kr/main/contents/view.do?menuKey=234',
     deadline: '2026-04-30',
     dDay: 54,
@@ -292,6 +298,7 @@ export const mockGrants: Grant[] = [
     matchRate: 88,
     matchReasons: ['공동주택 관리 업무 지원', '문서·행정 작업 대행 가능', '소상공인·개인사업자 대상'],
     status: 'open',
+    targetProfileIds: ['park'],
     description: '공동주택 관리지원을 위한 문서 작성, 입주자대표회의 지원, 관리비 정산 등 행정 업무 대행 사업자를 육성·지원합니다. 관리지원 분야 진출을 준비 중인 사업자에게 적합합니다.',
     eligibility: ['소상공인 또는 개인사업자', '관리 관련 자격·경험 우대', '사업자등록 7년 이내'],
     benefits: ['관리지원 업무 교육 무료', '입찰·계약 지원', '연간 최대 1천만원 사업비 지원'],
@@ -315,6 +322,7 @@ export const mockGrants: Grant[] = [
     matchRate: 90,
     matchReasons: ['공동주택 동대표·관리지원 연관', '주민 동의 시 노후 수리 지원', '인천 중구·서구 포함 지역 지원'],
     status: 'open',
+    targetProfileIds: ['park'],
     description: '공동주택 주민들의 동의를 받아 노후주택(공동주택) 수리·정비·리모델링 비용을 지원합니다. 동대표나 관리사가 주민 동의 절차를 진행한 뒤 신청 가능합니다. 인천 등 전국 단지 대상.',
     eligibility: ['공동주택 입주자대표회의 동의', '노후도·위험도 평가 통과', '관리규약 상 정비사업 계획'],
     benefits: ['노후 수리비 일부 국비 지원', '리모델링·대수선 비용 감면', '주민 부담 최소화'],
